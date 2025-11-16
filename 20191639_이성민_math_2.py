@@ -1,0 +1,157 @@
+import random
+A = [1, 2, 3, 4, 5]
+
+# 1. 관계 행렬 입력 기능
+def input_relation_matrix():
+    print("5×5 관계행렬을 입력하세요 (각 행을 공백으로 구분하여 입력)")
+    matrix = []
+    for i in range(5):
+        row = list(map(int, input(f"{i+1}행 입력: ").split()))
+        if len(row) != 5:
+            raise ValueError("각 행은 반드시 5개의 숫자를 입력해야 합니다.")
+        matrix.append(row)
+    return matrix
+
+# 1-2. 랜덤 관계행렬 생성 기능
+def random_relation_matrix():
+    print("\n★ 랜덤 5×5 관계행렬 생성 완료!")
+    matrix = [[random.randint(0, 1) for _ in range(5)] for _ in range(5)]
+    return matrix
+
+# 2. 동치 관계 판별 기능
+def is_reflexive(R):
+    return all(R[i][i] == 1 for i in range(5))
+
+def is_symmetric(R):
+    for i in range(5):
+        for j in range(5):
+            if R[i][j] != R[j][i]:
+                return False
+    return True
+
+def is_transitive(R):
+    for i in range(5):
+        for j in range(5):
+            if R[i][j] == 1:
+                for k in range(5):
+                    if R[j][k] == 1 and R[i][k] == 0:
+                        return False
+    return True
+
+def is_equivalence(R):
+    return is_reflexive(R) and is_symmetric(R) and is_transitive(R)
+# 3. 동치류 출력 기능
+def equivalence_class(R, x):
+    idx = x - 1
+    eq_class = [A[j] for j in range(5) if R[idx][j] == 1]
+    return eq_class
+
+def print_equivalence_classes(R):
+    print("\n=== 동치류 출력 ===")
+    for x in A:
+        print(f"[{x}] = {equivalence_class(R, x)}")
+
+# 4. 폐포 연산 기능
+def reflexive_closure(R):
+    R2 = [row[:] for row in R]
+    for i in range(5):
+        R2[i][i] = 1
+    return R2
+
+def symmetric_closure(R):
+    R2 = [row[:] for row in R]
+    for i in range(5):
+        for j in range(5):
+            if R2[i][j] == 1:
+                R2[j][i] = 1
+    return R2
+
+def transitive_closure(R):
+    R2 = [row[:] for row in R]
+    for k in range(5):
+        for i in range(5):
+            for j in range(5):
+                if R2[i][k] == 1 and R2[k][j] == 1:
+                    R2[i][j] = 1
+    return R2
+
+# 행렬 출력
+def print_matrix(M, title="Matrix"):
+    print(f"\n--- {title} ---")
+    for row in M:
+        print(row)
+
+# 폐포 후 결과 출력
+def check_after_closure(original, closure_matrix, closure_name):
+    print_matrix(original, f"{closure_name} 폐포 변환 전")
+    print_matrix(closure_matrix, f"{closure_name} 폐포 변환 후")
+
+    print(f"{closure_name} 폐포 후 동치 관계 여부 → {is_equivalence(closure_matrix)}")
+
+    # 동치관계라면 동치류 출력
+    if is_equivalence(closure_matrix):
+        print_equivalence_classes(closure_matrix)
+    else:
+        print(f"{closure_name} 폐포 후에도 동치관계가 아닙니다.")
+
+# 메인 실행
+def main():
+    print("===== 관계행렬 테스트 프로그램 =====")
+    print("1. 직접 입력")
+    print("2. 랜덤 생성")
+    choice = input("선택 (1/2): ")
+
+    if choice == "1":
+        R = input_relation_matrix()
+    elif choice == "2":
+        R = random_relation_matrix()
+    else:
+        print("잘못된 입력입니다. 프로그램 종료.")
+        return
+
+    print_matrix(R, "입력/생성된 관계행렬")
+
+    # 기본 판별
+    print("\n=== 관계 성질 판별 ===")
+    reflex = is_reflexive(R)
+    sym = is_symmetric(R)
+    trans = is_transitive(R)
+
+    print("반사적?  ", reflex)
+    print("대칭적?  ", sym)
+    print("추이적?  ", trans)
+
+    # 동치 관계 판별
+    if is_equivalence(R):
+        print("\n→ 이 관계는 동치 관계입니다.")
+        print_equivalence_classes(R)
+    else:
+        print("\n→ 이 관계는 동치 관계가 아닙니다.")
+
+    print("\n====================================")
+    print("      ★ 폐포(clousre) 생성 ★")
+    print("====================================")
+
+    # 반사 폐포
+    if not reflex:
+        Rc = reflexive_closure(R)
+        check_after_closure(R, Rc, "반사")
+    else:
+        print("\n반사적이므로 반사 폐포 적용 불필요")
+
+    # 대칭 폐포
+    if not sym:
+        Sc = symmetric_closure(R)
+        check_after_closure(R, Sc, "대칭")
+    else:
+        print("\n대칭적이므로 대칭 폐포 적용 불필요")
+
+    # 추이 폐포
+    if not trans:
+        Tc = transitive_closure(R)
+        check_after_closure(R, Tc, "추이")
+    else:
+        print("\n추이적이므로 추이 폐포 적용 불필요")
+
+# 실행
+main()
